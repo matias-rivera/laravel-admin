@@ -7,13 +7,43 @@
 require('./bootstrap');
 
 window.Vue = require('vue');
-import { Form, HasError, AlertError } from 'vform'
+import moment from 'moment';
+import { Form, HasError, AlertError } from 'vform';
 
+// Sweet Alert
+import Swal from 'sweetalert2'
+window.Swal = Swal;
+
+// Toast Alert
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  onOpen: (toast) => {
+    toast.addEventListener('mouseenter', Swal.stopTimer)
+    toast.addEventListener('mouseleave', Swal.resumeTimer)
+  }
+});
+window.Toast = Toast;
+
+
+//progressbar
+import VueProgressBar from 'vue-progressbar';
+Vue.use(VueProgressBar, {
+  color: 'rgb(143, 255, 199)',
+  failedColor: 'red',
+  height: '3px'
+})
+
+
+//vForm library
 window.Form = Form;
-
 Vue.component(HasError.name, HasError)
 Vue.component(AlertError.name, AlertError)
 
+// Vue Router
 import VueRouter from 'vue-router';
 Vue.use(VueRouter); 
 
@@ -26,13 +56,24 @@ const users = Vue.component('example-component', require('./components/Users.vue
 let routes = [
     { path: '/dashboard', component: dashboard },
     { path: '/profile', component: profile },
-    { path: '/users', component: users }
+    { path: '/users', component: users } 
   ];
 
   const router = new VueRouter({
     mode: 'history',
     routes // short for `routes: routes`
   });
+ 
+  Vue.filter('upText', function(text){
+    return text.charAt(0).toUpperCase() + text.slice(1)
+  });
+  Vue.filter('myDate',function(date){
+    return moment(date).format('MMMM Do YYYY');
+  });
+
+  //Custom events
+  window.Fire = new Vue();
+
 
 /**
  * The following block of code may be used to automatically register your

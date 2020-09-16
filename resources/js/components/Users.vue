@@ -19,15 +19,17 @@
                       <th>Name</th>
                       <th>Email</th>
                       <th>Type</th>
+                      <th>Registered At</th>
                       <th>Modify</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>183</td>
-                      <td>John Doe</td>
-                      <td>11-7-2014</td>
-                      <td><span class="tag tag-success">Approved</span></td>
+                    <tr v-for="user in users" :key="user.id">
+                      <td>{{user.id}}</td>
+                      <td>{{user.name}}</td>
+                      <td>{{user.email}}</td>
+                      <td>{{user.type | upText}}</td>
+                      <td>{{user.created_at | myDate}}</td>
                       <td>
                         <a href="#">
                             <i class="fa fa-edit blue"></i>
@@ -67,7 +69,7 @@
                       </div>
 
                       <div class="form-group">
-                        <label>Username</label>
+                        <label>Email</label>
                         <input v-model="form.email" type="email" name="email"
                           placeholder="Email"
                           class="form-control" :class="{ 'is-invalid': form.errors.has('email') }">
@@ -84,7 +86,7 @@
 
                       <div class="form-group">
                         <label>User Role</label>
-                        <select name="tupe" v-model="form.type" id="type" class="form-control" :class="{
+                        <select name="type" v-model="form.type" id="type" class="form-control" :class="{
                           'is-invalid': form.errors.has('type')}">
                           <option value="">Select User Role</option>
                           <option value="admin">Admin</option>
@@ -119,6 +121,7 @@
 
         data(){
           return{
+            users: {},
             form: new Form({
               name: '',
               email: '',
@@ -130,12 +133,43 @@
           }
         },
         methods:{ 
+          //Load all users
+          loadUsers(){
+            axios.get('api/user').then(({data}) => (this.users = data.data));
+          },
+          //Create User
           createUser(){
-            this.form.post('api/user');
+            this.$Progress.start();
+            //Send a request to the api, UsersController store function
+            this.form.post('api/user')
+            .then(()=>{
+              //Calls an event
+              Fire.$emit('AfterCreate');
+              $('#addNew').modal('hide');
+  
+              //Fire Toast when user is created
+              Toast.fire({
+                icon: 'success',
+                title: 'User Created successfully'
+              });
+  
+              this.$Progress.finish();
+              
+              })
+            .catch(() => {
+              
+            });
+            
           }
         },
-        mounted() {
-            console.log('Component mounted.')
+        //When Component is created
+        created() {
+          this.loadUsers();
+          //Reload all users when event'AfterCreate' is called
+          Fire.$on('AfterCreate',() => {
+            this.loadUsers();
+          });
+         // setInterval(() => this.loadUsers(),3000);
         }
     }
 </script>
